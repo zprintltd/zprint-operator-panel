@@ -47,7 +47,7 @@ st.title("ZPRINT Operator Work Panel")
 display_df = df_active[[
     "WO Number",
     "Date",
-    "Client",
+    "Client Name",
     "Category",
     "Subcategory",
     "Full Filename",
