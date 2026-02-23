@@ -44,15 +44,20 @@ st.title("ZPRINT Operator Work Panel")
 # ----------------------------
 # DISPLAY TABLE
 # ----------------------------
+display_df = df_active[[
+    "WO Number",
+    "Date",
+    "Client",
+    "Category",
+    "Subcategory",
+    "Full Filename",
+    "Status"
+]]
+
 st.dataframe(
-    df_active[[
-        "WO Number",
-        "Date",
-        "Client",
-        "Category",
-        "Subcategory",
-        "Status"
-    ]]
+    display_df,
+    use_container_width=True,
+    hide_index=True
 )
 
 # ----------------------------
