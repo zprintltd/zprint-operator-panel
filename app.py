@@ -28,7 +28,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(
 client = gspread.authorize(creds)
 
 client = gspread.authorize(creds)
-sheet = client.open("ZPRINT WO System – Version 2").worksheet("WO_Log")
+sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/14Ke6jLoN94HnwltRwCME-U0u5KK3adUZbBkXEL2LHxM/edit?usp=sharing").worksheet("WO_Log")
 
 # ----------------------------
 # LOAD DATA
