@@ -11,10 +11,21 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "service_account.json",
+import streamlit as st
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive"
+]
+
+creds = ServiceAccountCredentials.from_json_keyfile_dict(
+    st.secrets["gcp_service_account"],
     scope
 )
+
+client = gspread.authorize(creds)
 
 client = gspread.authorize(creds)
 sheet = client.open("ZPRINT WO System – Version 2").worksheet("WO_Log")
