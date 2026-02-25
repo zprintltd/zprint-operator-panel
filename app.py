@@ -75,10 +75,9 @@ df_active = df.copy()
 
 # Select columns to display
 display_df = df_active[[
-display_df = df_active[[
     "WO Number",
     "Date",
-    "Client Name (View)",
+    "Client Name",
     "Category",
     "Subcategory",
     "Full Filename",
