@@ -55,6 +55,7 @@ sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/14Ke6jLoN94Hn
 # ----------------------------
 data = sheet.get_all_records()
 df = pd.DataFrame(data)
+df.columns = df.columns.str.strip()
 
 # Only show active work
 df_active = df[df["Status"] != "Completed"]
@@ -74,13 +75,14 @@ df_active = df.copy()
 
 # Select columns to display
 display_df = df_active[[
+display_df = df_active[[
     "WO Number",
     "Date",
-    "Client Name (View)",      # Change to your exact column name
+    "Client Name (View)",
     "Category",
     "Subcategory",
     "Full Filename",
-    "Assigned To Name",        # Change to your exact column name
+    "Assigned To Name",
     "Status"
 ]].copy()
 
