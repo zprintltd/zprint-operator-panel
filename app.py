@@ -1,3 +1,19 @@
+st.markdown("""
+<style>
+div.stButton > button {
+    background-color: #1F2933;
+    color: white;
+    border-radius: 8px;
+    padding: 0.5em 1em;
+    font-weight: 600;
+}
+
+div.stButton > button:hover {
+    background-color: #F4B400;
+    color: black;
+}
+</style>
+""", unsafe_allow_html=True)
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -55,12 +71,25 @@ display_df = df_active[[
     "Status"
 ]]
 
+def color_status(val):
+    if val == "Completed":
+        return "color: green; font-weight: bold;"
+    elif val == "In Progress":
+        return "color: orange; font-weight: bold;"
+    elif val == "Pending":
+        return "color: red; font-weight: bold;"
+    return ""
+
+styled_df = display_df.style.applymap(
+    color_status,
+    subset=["Status"]
+)
+
 st.dataframe(
-    display_df,
+    styled_df,
     use_container_width=True,
     hide_index=True
 )
-
 # ----------------------------
 # SELECT WO TO UPDATE
 # ----------------------------
