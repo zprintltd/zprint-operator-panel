@@ -51,6 +51,7 @@ display_df = df_active[[
     "Category",
     "Subcategory",
     "Full Filename",
+    "Assigned To Name",
     "Status"
 ]]
 
