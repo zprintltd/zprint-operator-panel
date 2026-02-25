@@ -73,7 +73,13 @@ df_active = df.copy()
 # Optional: comment this line if you want to show ALL
 # df_active = df[df["Status"] != "Completed"]
 
-# Select columns to display
+# Clean column names
+df.columns = df.columns.str.strip()
+
+# Copy active dataframe
+df_active = df.copy()
+
+# Select columns
 display_df = df_active[[
     "WO Number",
     "Date",
@@ -85,7 +91,7 @@ display_df = df_active[[
     "Status"
 ]].copy()
 
-# Sort newest WO first
+# Sort newest first
 display_df = display_df.sort_values(
     by="WO Number",
     ascending=False
