@@ -58,32 +58,55 @@ df_active = df[df["Status"] != "Completed"]
 st.title("ZPRINT Operator Work Panel")
 
 # ----------------------------
-# DISPLAY TABLE
 # ----------------------------
+# PREPARE DISPLAY DATA
+# ----------------------------
+
+# Only show active work (exclude Completed if desired)
+df_active = df.copy()
+
+# Optional: comment this line if you want to show ALL
+# df_active = df[df["Status"] != "Completed"]
+
+# Select columns to display
 display_df = df_active[[
     "WO Number",
     "Date",
-    "Client",
+    "Client Name (View)",      # Change to your exact column name
     "Category",
     "Subcategory",
     "Full Filename",
-    "Assigned To Name",
+    "Assigned To Name",        # Change to your exact column name
     "Status"
-]]
+]].copy()
+
+# Sort newest WO first
+display_df = display_df.sort_values(
+    by="WO Number",
+    ascending=False
+)
+
+# ----------------------------
+# STATUS COLOR FUNCTION
+# ----------------------------
 
 def color_status(val):
     if val == "Completed":
-        return "color: green; font-weight: bold;"
+        return "color: green; font-weight: 600;"
     elif val == "In Progress":
-        return "color: orange; font-weight: bold;"
+        return "color: orange; font-weight: 600;"
     elif val == "Pending":
-        return "color: red; font-weight: bold;"
+        return "color: red; font-weight: 600;"
     return ""
 
-styled_df = display_df.style.applymap(
+styled_df = display_df.style.map(
     color_status,
     subset=["Status"]
 )
+
+# ----------------------------
+# DISPLAY TABLE
+# ----------------------------
 
 st.dataframe(
     styled_df,
