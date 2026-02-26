@@ -77,9 +77,6 @@ spreadsheet = client.open_by_url("https://docs.google.com/spreadsheets/d/14Ke6jL
 sheet = spreadsheet.worksheet("WO_Log")
 
 # ----------------------------
-# LOAD DATA
-# ----------------------------
-# ----------------------------
 # CLEAN & FILTER ACTIVE WORK
 # ----------------------------
 
