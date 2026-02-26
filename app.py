@@ -124,6 +124,7 @@ st.dataframe(
     use_container_width=True,
     hide_index=True
 )
+st.write("Actual columns:", df.columns.tolist())
 # ----------------------------
 # SELECT WO TO UPDATE
 # ----------------------------
