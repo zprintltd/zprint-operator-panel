@@ -79,8 +79,25 @@ sheet = spreadsheet.worksheet("WO_Log")
 # ----------------------------
 # LOAD DATA
 # ----------------------------
-data = sheet.get_all_records()
-df = pd.DataFrame(data)
+# ----------------------------
+# CLEAN & FILTER ACTIVE WORK
+# ----------------------------
+
+# Convert WO Number to numeric safely
+df["WO Number"] = pd.to_numeric(
+    df["WO Number"],
+    errors="coerce"
+)
+
+# Remove rows with invalid WO Number
+df = df[df["WO Number"].notna()]
+
+# Remove rows without Date
+if "Date" in df.columns:
+    df = df[df["Date"].notna()]
+
+# Keep only Pending & In Progress
+df_active = df[df["Status"].isin(["Pending", "In Progress"])].copy()
 
 # Clean column names (important)
 df.columns = df.columns.str.strip()
