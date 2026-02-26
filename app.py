@@ -13,17 +13,47 @@ st.set_page_config(page_title="ZPRINT Operator Panel", layout="wide")
 # ----------------------------
 st.markdown("""
 <style>
+
+/* Primary Update Button */
 div.stButton > button {
     background-color: #1F2933;
     color: white;
     border-radius: 8px;
-    padding: 0.5em 1em;
+    padding: 0.6em 1.2em;
     font-weight: 600;
+    border: none;
 }
+
 div.stButton > button:hover {
     background-color: #F4B400;
     color: black;
 }
+
+/* Status Badge Styling */
+.status-pending {
+    background-color: #ffe6e6;
+    color: #cc0000;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.status-progress {
+    background-color: #fff4cc;
+    color: #cc8400;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.status-completed {
+    background-color: #e6f4ea;
+    color: #137333;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
