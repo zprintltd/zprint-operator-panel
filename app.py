@@ -137,30 +137,22 @@ if "Date" in display_df.columns:
 # ----------------------------
 # STATUS COLOR FUNCTION
 # ----------------------------
-def color_status(val):
-    if val == "Completed":
-        return "color: green; font-weight: 600;"
-    elif val == "In Progress":
-        return "color: orange; font-weight: 600;"
-    elif val == "Pending":
-        return "color: red; font-weight: 600;"
-    return ""
+def render_status_badge(status):
+    if status == "Pending":
+        return '<span class="status-pending">Pending</span>'
+    elif status == "In Progress":
+        return '<span class="status-progress">In Progress</span>'
+    elif status == "Completed":
+        return '<span class="status-completed">Completed</span>'
+    return status
 
-styled_df = display_df.style.map(
-    color_status,
-    subset=["Status"] if "Status" in display_df.columns else []
+if "Status" in display_df.columns:
+    display_df["Status"] = display_df["Status"].apply(render_status_badge)
+
+st.markdown(
+    display_df.to_html(escape=False, index=False),
+    unsafe_allow_html=True
 )
-
-# ----------------------------
-# DISPLAY TABLE
-# ----------------------------
-st.dataframe(
-    styled_df,
-    use_container_width=True,
-    hide_index=True
-)
-
-st.divider()
 
 # ----------------------------
 # UPDATE STATUS SECTION
