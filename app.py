@@ -87,10 +87,17 @@ display_df = df_active[display_columns].copy()
 
 # Sort newest first
 if "WO Number" in display_df.columns:
+    display_df["WO Number"] = (
+        display_df["WO Number"]
+        .astype(str)
+        .str.extract(r"(\d+)")
+    )
+
     display_df["WO Number"] = pd.to_numeric(
         display_df["WO Number"],
         errors="coerce"
     )
+
     display_df = display_df.sort_values(
         by="WO Number",
         ascending=False,
