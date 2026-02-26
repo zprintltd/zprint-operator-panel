@@ -100,8 +100,8 @@ df = df[df["WO Number"].notna()]
 if "Date" in df.columns:
     df = df[df["Date"].notna()]
 
-# Keep only Pending & In Progress
-df_active = df[df["Status"].isin(["Pending", "In Progress"])].copy()
+# Keep only Pending & In progress
+df_active = df[df["Status"].isin(["Pending", "In progress"])].copy()
 
 # ----------------------------
 # TITLE
@@ -145,8 +145,8 @@ if "Date" in display_df.columns:
 def render_status_badge(status):
     if status == "Pending":
         return '<span class="status-pending">Pending</span>'
-    elif status == "In Progress":
-        return '<span class="status-progress">In Progress</span>'
+    elif status == "In progress":
+        return '<span class="status-progress">In progress</span>'
     elif status == "Completed":
         return '<span class="status-completed">Completed</span>'
     return status
