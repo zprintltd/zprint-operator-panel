@@ -79,6 +79,23 @@ sheet = spreadsheet.worksheet("WO_Log")
 data = sheet.get_all_records()
 df = pd.DataFrame(data)
 
+# --- NEW: LOAD USERS FOR NAME MAPPING ---
+try:
+    # Assuming 'users_sheet' is your connection to the Users tab
+    # If you haven't defined it, use: users_sheet = client.open("YourSheetName").worksheet("users")
+    user_data = users_sheet.get_all_records()
+    df_users = pd.DataFrame(user_data)
+    
+    # Create mapping: Email (Col A) -> Name (Col B)
+    # Using .strip() and .lower() to ensure matches even with typos
+    name_map = dict(zip(
+        df_users.iloc[:, 0].astype(str).str.strip().str.lower(), 
+        df_users.iloc[:, 1].astype(str).str.strip()
+    ))
+except Exception as e:
+    st.error(f"Could not load user names: {e}")
+    name_map = {}
+
 if df.empty:
     st.warning("No data found in WO_Log.")
     st.stop()
@@ -90,13 +107,27 @@ df.columns = df.columns.str.strip()
 # CLEAN & FILTER DATA
 # ----------------------------
 
+# 1. Create the "Assigned To Name" column dynamically
+# We look for the column that usually holds the email (often 'Assigned To')
+staff_email_col = next((c for c in df.columns if 'Assigned' in c), None)
+
+if staff_email_col:
+    # Map the email to the Name, if not found, keep the original value (the email)
+    df["Assigned To Name"] = (
+        df[staff_email_col]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+        .map(name_map)
+        .fillna(df[staff_email_col]) # Fallback to email if name not found
+    )
+else:
+    df["Assigned To Name"] = "Unassigned"
+
 # Convert WO Number to numeric
 df["WO Number"] = pd.to_numeric(df["WO Number"], errors="coerce")
-
-# Remove invalid WO rows
 df = df[df["WO Number"].notna()]
 
-# Remove rows without Date
 if "Date" in df.columns:
     df = df[df["Date"].notna()]
 
@@ -118,18 +149,16 @@ display_columns = [
     "Category",
     "Subcategory",
     "Full Filename",
-    "Assigned To Name",
+    "Assigned To Name", # This now exists because we created it above!
     "Status"
 ]
 
+# Ensure we only try to display columns that actually exist
 display_columns = [col for col in display_columns if col in df_active.columns]
-
 display_df = df_active[display_columns].copy()
 
 # Format WO Number cleanly
 display_df["WO Number"] = display_df["WO Number"].astype(int)
-
-# Sort newest first
 display_df = display_df.sort_values(by="WO Number", ascending=False)
 
 # Format Date
@@ -144,11 +173,9 @@ if "Date" in display_df.columns:
 # ----------------------------
 def render_status_badge(status):
     if status == "Pending":
-        return '<span class="status-pending">Pending</span>'
+        return '<span class="status-pending" style="padding: 2px 8px; border-radius: 4px; background-color: #ffeeba; color: #856404;">Pending</span>'
     elif status == "In progress":
-        return '<span class="status-progress">In progress</span>'
-    elif status == "Completed":
-        return '<span class="status-completed">Completed</span>'
+        return '<span class="status-progress" style="padding: 2px 8px; border-radius: 4px; background-color: #b8daff; color: #004085;">In progress</span>'
     return status
 
 display_df["Status"] = display_df["Status"].apply(render_status_badge)
@@ -165,37 +192,21 @@ st.divider()
 # UPDATE STATUS SECTION
 # ----------------------------
 if not df_active.empty:
-
     wo_list = df_active["WO Number"].astype(int).tolist()
+    
+    col_a, col_b = st.columns(2)
+    selected_wo = col_a.selectbox("Select WO to Update", wo_list)
+    new_status = col_b.selectbox("Change Status To", ["In progress", "Completed"])
 
-    selected_wo = st.selectbox(
-        "Select WO to Update",
-        wo_list
-    )
-
-    new_status = st.selectbox(
-        "Change Status To",
-        ["In Progress", "Completed"]
-    )
-
-    if st.button("Update Status"):
-
+    if st.button("Update Status", use_container_width=True):
         row_match = df[df["WO Number"] == selected_wo]
-
         if not row_match.empty:
-
-            row_index = row_match.index[0] + 2  # header offset
-
+            row_index = row_match.index[0] + 2 
             header_row = sheet.row_values(1)
             status_col_index = header_row.index("Status") + 1
-
+            
             sheet.update_cell(row_index, status_col_index, new_status)
-
             st.success(f"WO {selected_wo} updated to {new_status}")
             st.rerun()
-
-        else:
-            st.error("WO not found.")
-
 else:
     st.info("No active work orders to update.")
