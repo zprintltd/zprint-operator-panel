@@ -76,31 +76,58 @@ sheet = spreadsheet.worksheet("WO_Log")
 # ----------------------------
 # LOAD DATA
 # ----------------------------
-# 1. Define your sheets (Make sure the names match your Google Sheet tabs exactly)
-sheet = client.open("Your_Spreadsheet_Name").worksheet("WO_Log")
-users_sheet = client.open("Your_Spreadsheet_Name").worksheet("users") # Add this line!
+# Pull the URL from your existing secrets
+SHEET_URL = st.secrets["connections"]["gsheets"]["spreadsheet_url"]
 
-# 2. Get data from WO_Log
+# Open the spreadsheet using the URL instead of the name
+spreadsheet = client.open_by_url(SHEET_URL)
+
+# Define your worksheets
+sheet = spreadsheet.worksheet("WO_Log")
+users_sheet = spreadsheet.worksheet("users")
+
+# Load records
 data = sheet.get_all_records()
 df = pd.DataFrame(data)
 
-# 3. Get data from users for mapping
+# ----------------------------
+# USER NAME MAPPING
+# ----------------------------
 try:
     user_data = users_sheet.get_all_records()
     df_users = pd.DataFrame(user_data)
     
-    # Standardize column headers in users sheet
-    df_users.columns = df_users.columns.str.strip()
+    # Standardize column headers
+    df_users.columns = [str(c).strip() for c in df_users.columns]
     
-    # Create mapping: Email (Col A) -> Name (Col B)
-    # This assumes Email is the 1st column and Name is the 2nd
+    # Mapping: Email (Col A) -> Name (Col B)
+    # iloc[:, 0] is the 1st column, iloc[:, 1] is the 2nd
     name_map = dict(zip(
         df_users.iloc[:, 0].astype(str).str.strip().str.lower(), 
         df_users.iloc[:, 1].astype(str).str.strip()
     ))
+    
+    # Find the column in WO_Log that contains emails (usually "Assigned To")
+    staff_email_col = next((c for c in df.columns if 'Assigned' in c), None)
+    
+    if staff_email_col:
+        # Create the Name column: 
+        # 1. Look up the email in the map
+        # 2. If it's already a name (not found in map), keep the original value
+        df["Assigned To Name"] = (
+            df[staff_email_col]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            .map(name_map)
+            .fillna(df[staff_email_col]) 
+        )
+    else:
+        df["Assigned To Name"] = "Unassigned"
+
 except Exception as e:
-    st.error(f"Could not load user names: {e}")
-    name_map = {}
+    st.error(f"Mapping Error: {e}")
+    df["Assigned To Name"] = "Mapping Error"
 # ----------------------------
 # CLEAN & FILTER DATA
 # ----------------------------
