@@ -214,24 +214,77 @@ st.markdown(
 st.divider()
 
 # ----------------------------
-# UPDATE STATUS SECTION
+# UPDATE STATUS & ASSIGNMENT SECTION
 # ----------------------------
+st.subheader("📝 Update Task Details")
+
 if not df_active.empty:
+    # Prepare the list of WO numbers for the dropdown
     wo_list = df_active["WO Number"].astype(int).tolist()
     
-    col_a, col_b = st.columns(2)
-    selected_wo = col_a.selectbox("Select WO to Update", wo_list)
-    new_status = col_b.selectbox("Change Status To", ["In progress", "Completed"])
+    # Prepare the list of Staff Names for the dropdown
+    # We pull this from our df_users mapping or list
+    staff_options = sorted(list(name_map.values()))
+    if "Unassigned" not in staff_options:
+        staff_options.insert(0, "Unassigned")
 
-    if st.button("Update Status", use_container_width=True):
-        row_match = df[df["WO Number"] == selected_wo]
-        if not row_match.empty:
-            row_index = row_match.index[0] + 2 
-            header_row = sheet.row_values(1)
-            status_col_index = header_row.index("Status") + 1
+    # Create three columns for a clean UI
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        selected_wo = st.selectbox("Select WO #", wo_list)
+    
+    # Find current values for the selected WO to set as defaults
+    current_row = df_active[df_active["WO Number"] == selected_wo].iloc[0]
+    
+    with col2:
+        # Default to current assignee
+        current_assignee = current_row["Assigned To Name"]
+        try:
+            assignee_idx = staff_options.index(current_assignee)
+        except ValueError:
+            assignee_idx = 0
             
-            sheet.update_cell(row_index, status_col_index, new_status)
-            st.success(f"WO {selected_wo} updated to {new_status}")
+        new_assignee = st.selectbox("Reassign To", staff_options, index=assignee_idx)
+
+    with col3:
+        # Default to current status
+        current_status = current_row["Status"]
+        # Clean the HTML tags if they were applied in the display_df
+        if "Pending" in current_status: current_status = "Pending"
+        if "In progress" in current_status: current_status = "In progress"
+            
+        status_options = ["Pending", "In progress", "Completed"]
+        try:
+            status_idx = status_options.index(current_status)
+        except ValueError:
+            status_idx = 0
+            
+        new_status = st.selectbox("Change Status", status_options, index=status_idx)
+
+    if st.button("Save Changes", use_container_width=True):
+        row_match = df[df["WO Number"] == selected_wo]
+        
+        if not row_match.empty:
+            # 1. Calculate row index (header offset)
+            row_index = row_match.index[0] + 2 
+            
+            # 2. Get header locations
+            header_row = sheet.row_values(1)
+            status_col_idx = header_row.index("Status") + 1
+            # Dynamically find the original email/staff column
+            staff_col_name = next((c for c in header_row if 'Assigned' in c), "Assigned To")
+            staff_col_idx = header_row.index(staff_col_name) + 1
+            
+            # 3. Handle Email mapping for the save
+            # We want to save the EMAIL back to the sheet, not the Name
+            # Find the email key that belongs to the selected name
+            reverse_map = {name: email for email, name in name_map.items()}
+            email_to_save = reverse_map.get(new_assignee, new_assignee)
+
+            # 4. Update both cells in Google Sheets
+            sheet.update_cell(row_index, status_col_idx, new_status)
+            sheet.update_cell(row_index, staff_col_idx, email_to_save)
+
+            st.success(f"✅ WO {selected_wo} updated successfully!")
             st.rerun()
-else:
-    st.info("No active work orders to update.")
